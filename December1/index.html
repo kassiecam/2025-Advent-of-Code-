@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <h1 style="text-align:center;">Advent of Code 2025</h1>
+    <br>
+    <h2 style="text-align:center;">December 1</h2>
+
+    <p>
+        You arrive at the secret entrance to the North Pole base ready to start decorating. Unfortunately, the
+        password
+        seems to have been changed, so you can't get in. A document taped to the wall helpfully explains:
+
+        "Due to new security protocols, the password is locked in the safe below. Please see the attached document
+        for
+        the new combination."
+        <br>
+        The safe has a dial with only an arrow on it; around the dial are the numbers 0 through 99 in order. As you
+        turn
+        the dial, it makes a small click noise as it reaches each number.
+        <br>
+
+        The attached document (your puzzle input) contains a sequence of rotations, one per line, which tell you how
+        to
+        open the safe. A rotation starts with an L or R which indicates whether the rotation should be to the left
+        (toward lower numbers) or to the right (toward higher numbers). Then, the rotation has a distance value
+        which
+        indicates how many clicks the dial should be rotated in that direction.
+        <br>
+
+        So, if the dial were pointing at 11, a rotation of R8 would cause the dial to point at 19. After that, a
+        rotation of L19 would cause it to point at 0.
+        <br>
+        Because the dial is a circle, turning the dial left from 0 one click makes it point at 99. Similarly,
+        turning
+        the dial right from 99 one click makes it point at 0.
+        <br>
+        So, if the dial were pointing at 5, a rotation of L10 would cause it to point at 95. After that, a rotation
+        of
+        R5 could cause it to point at 0.
+        <br>
+        The dial starts by pointing at 50.
+
+        You could follow the instructions, but your recent required official North Pole secret entrance security
+        training seminar taught you that the safe is actually a decoy. The actual password is the number of times
+        the
+        dial is left pointing at 0 after any rotation in the sequence.
+    </p>
+
+    <textarea id="instructionsInput" rows="10" cols="4">
+</textarea>
+
+    <br><br>
+
+    <button onclick="runPuzzle()">Run Puzzle</button>
+
+    <h3>Results:</h3>
+
+    <div id="resultsBox" style="max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 15px;
+        display: inline-block;
+        white-space: nowrap;">
+    </div>
+
+    <script>
+        function rotateDial(current, direction, distance) {
+            if (direction === "R") return (current + distance) % 100;
+            if (direction === "L") return (current - distance + 100) % 100;
+        }
+
+        function passwordRotations(start, instructions) {
+            let current = start;
+            let zeroCount = 0;
+            const steps = [];
+
+            const lines = instructions
+                .trim()
+                .split(/\r?\n/)
+                .filter(line => line.length > 0);
+
+            for (const line of lines) {
+                const direction = line[0];
+                const distance = Number(line.slice(1));
+
+                const before = current;
+                current = rotateDial(current, direction, distance);
+
+                const hitZero = current === 0;
+                if (hitZero) zeroCount++;
+
+                steps.push({
+                    before,
+                    instruction: line,
+                    after: current,
+                    hitZero
+                });
+            }
+
+            return { zeroCount, steps };
+        }
+
+        fetch("input.txt")
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById("instructionsInput").value = data;
+            });
+
+        function runPuzzle() {
+            const text = document.getElementById("instructionsInput").value;
+            const { zeroCount, steps } = passwordRotations(50, text);
+
+            let html = "";
+
+            for (const step of steps) {
+                const after =
+                    step.after === 0
+                        ? `<strong style="color:green;">0</strong>`
+                        : `<strong>${step.after}</strong>`;
+
+                html += `<div>${step.before} → ${step.instruction} → ${after}</div>`;
+            }
+
+            html += "</ol>";
+            html += `<p style="font-size: 24px; font-weight: bold; border: 5px solid; margin-top: 20px;">
+            Times dial pointed at 0: <span style="color: green;">${zeroCount}</span>
+        </p>`;
+
+            document.getElementById("resultsBox").innerHTML = html;
+        }
+
+    </script>
+
+</body>
+
+</html>
